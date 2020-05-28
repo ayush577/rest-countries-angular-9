@@ -1,8 +1,6 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
-import { pluck } from "rxjs/Operators";
-
 import { Cardcountries } from "./interface/cardcountries.type";
 
 interface continents {
