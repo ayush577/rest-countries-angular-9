@@ -1,5 +1,6 @@
-import { Component, OnInit } from "@angular/core";
-import { FormBuilder, Validators } from "@angular/forms";
+import { Component, OnInit, Output, EventEmitter } from "@angular/core";
+
+import { RestcountriesService } from "../restcountries.service";
 
 @Component({
   selector: "app-filter",
@@ -7,30 +8,43 @@ import { FormBuilder, Validators } from "@angular/forms";
   styleUrls: ["./filter.component.scss"],
 })
 export class FilterComponent implements OnInit {
-  submitted = false;
-  oppoSuits: any = ["Men", "Women", "Boys", "Inspiration"];
+  constructor(private service: RestcountriesService) {}
 
-  constructor(public fb: FormBuilder) {}
+  items = [];
+  dropDownText = "Filter by Region";
+  term = "";
 
-  ngOnInit(): void {}
+  @Output() submitted = new EventEmitter<string>();
+  @Output() filteredDropdown = new EventEmitter<string>();
 
-  oppoSuitsForm = this.fb.group({
-    name: ["", [Validators.required]],
-  });
+  ngOnInit(): void {
+    this.filterList();
+  }
 
-  changeSuit(e) {
-    this.oppoSuitsForm.get("name").setValue(e.target.value, {
-      onlySelf: true,
+  selectedValue(event: string) {
+    console.log(event);
+    this.filteredDropdown.emit(event);
+  }
+
+  filterList() {
+    this.service.getFilterList().subscribe((res) => {
+      const region = res.filter(
+        (item, index, regions) =>
+          index === regions.findIndex((el) => el.region === item.region)
+      );
+      const list = region.filter((item) => item.region).map((el) => el.region);
+
+      this.items = list;
     });
   }
 
-  /* Select Dropdown error handling */
-  public handleError = (controlName: string, errorName: string) => {
-    return this.oppoSuitsForm.controls[controlName].hasError(errorName);
-  };
+  onFormSubmit(event: any) {
+    event.preventDefault();
+    this.submitted.emit(this.term);
+  }
 
-  onSubmit() {
-    this.submitted = true;
-    alert(JSON.stringify(this.oppoSuitsForm.value));
+  onSearch(event) {
+    this.term = event;
+    this.submitted.emit(this.term);
   }
 }
